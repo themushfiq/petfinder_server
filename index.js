@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 // Connection with mongodb
-const mongoUri = process.env.MONGO_URI; 
+// const mongoUri = process.env.MONGO_URI; 
 
 
 const uri = "mongodb+srv://logedInUserr:HCtwliFQhB9gD7m1@cluster0.qzz0mz8.mongodb.net/?retryWrites=true&w=majority";
@@ -25,36 +25,45 @@ const client = new MongoClient(uri, {
   }
 });
 
+const userCollection = client.db('test').collection('users');
 async function run() {
   try {
-    const userCollection = client.db('test').collection('users');
     await client.connect();
     await client.db("users").command({ ping: 1 });
     console.log("Database is connected successfully.");
-
-
-    app.post('/create-user', async (req, res)=>{
-        const user = req.body;
-        const result = await userCollection.insertOne(user);
-        console.log(result);
-        res.send(result); 
-    })
-    app.get('/all-user', async (req, res)=>{
-        const query = {};
-        const result = await userCollection.find(query).toArray();
-        res.send(result); 
-    })
-    app.put('/update-user', async (req, res)=>{
-        const { userId } = req.query;
-        const formData = req.body;
-        const result = userCollection.findOneAndUpdate({ _id: new ObjectId(userId) }, { $set: formData })
-        res.send(result); 
-    })
   } finally {
     
   }
 }
 run().catch(console.dir);
+
+app.post('/create-user', async (req, res)=>{
+  res.setHeader('Access-Control-Allow-Origin', '*');
+res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  const user = req.body;
+  const result = await userCollection.insertOne(user);
+  console.log(result);
+  res.send(result); 
+})
+app.get('/all-user', async (req, res)=>{
+  res.setHeader('Access-Control-Allow-Origin', '*');
+res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  const query = {};
+  const result = await userCollection.find(query).toArray();
+  console.log(result);
+  res.send(result);
+})
+app.put('/update-user', async (req, res)=>{
+  res.setHeader('Access-Control-Allow-Origin', '*');
+res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  const { userId } = req.query;
+  const formData = req.body;
+  const result = userCollection.findOneAndUpdate({ _id: new ObjectId(userId) }, { $set: formData })
+  res.send(result); 
+})
 
 app.listen(port, ()=>{
     console.log(`Task app listening on ${port}`)
