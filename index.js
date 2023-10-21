@@ -77,5 +77,5 @@ app.listen(port, () => {
 });
 
 app.get("/", (req, res) => {
-  res.send("This project is running.");
+  res.send("This project is running successfully");
 });
