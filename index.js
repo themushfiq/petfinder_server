@@ -4,7 +4,7 @@ import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 
 const app = express();
 app.use(cors());
-const port = 7000;
+const port = 5000;
 // const nodeEnv = process.env.MONGO_URI; 
 
 app.use(express.json());
