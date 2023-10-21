@@ -10,11 +10,10 @@ const port = 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connection with mongodb
+// Connection with mongodb 
 // const mongoUri = process.env.MONGO_URI;
 
-const uri =
-  "mongodb+srv://logedInUserr:HCtwliFQhB9gD7m1@cluster0.qzz0mz8.mongodb.net/?retryWrites=true&w=majority";
+const uri = "mongodb+srv://be-reaw-users:S5gNQKAqCbSy3yrF@cluster0.omy4x9q.mongodb.net/?retryWrites=true&w=majority";
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -23,6 +22,18 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+const connectWithRetry = () => {
+  return client.connect()
+    .then(() => {
+      console.log('Connected to MongoDB');
+    })
+    .catch(err => {
+      console.error('Error connecting to MongoDB:', err);
+      setTimeout(connectWithRetry, 5000); // Retry every 5 seconds
+    });
+};
+connectWithRetry();
 
 const userCollection = client.db("test").collection("users");
 async function run() {
@@ -35,19 +46,19 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.post("/create-user", async (req, res) => {
+app.post("/add-productByAdmin", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  const user = req.body;
-  const result = await userCollection.insertOne(user);
+  const product = req.body;
+  const result = await userCollection.insertOne(product);
   console.log(result);
   res.send(result);
 });
 
 
 
-app.get("/all-user", async (req, res) => {
+app.get("/get-products", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
