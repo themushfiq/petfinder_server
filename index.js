@@ -1,6 +1,10 @@
-import express from "express";
-import cors from "cors";
-import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
+import cors from 'cors';
+import express from 'express';
+import {
+  MongoClient,
+  ObjectId,
+  ServerApiVersion,
+} from 'mongodb';
 
 const app = express();
 app.use(cors());
@@ -30,12 +34,13 @@ const connectWithRetry = () => {
     })
     .catch(err => {
       console.error('Error connecting to MongoDB:', err);
-      setTimeout(connectWithRetry, 5000); // Retry every 5 seconds
+      setTimeout(connectWithRetry, 5000);
     });
 };
 connectWithRetry();
 
 const userCollection = client.db("test").collection("users");
+const placedProducts = client.db("test").collection("userAndProducts");
 async function run() {
   try {
     await client.connect();
@@ -57,6 +62,17 @@ app.post("/add-productByAdmin", async (req, res) => {
 });
 
 
+app.post("/userInfoForPlacedProduct", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  const product = req.body;
+  const result = await placedProducts.insertOne(product);
+  console.log(result);
+  res.send(result);
+});
+
+
 
 app.get("/get-products", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -69,6 +85,42 @@ app.get("/get-products", async (req, res) => {
 });
 
 
+app.get("/get-orders", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  const query = {};
+  const result = await placedProducts.find(query).toArray();
+  console.log(result);
+  res.send(result);
+});
+
+
+
+// Product Delete 
+app.delete("/deleteProduct/:productId", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  
+  const { productId } = req.params;
+  console.log(productId);
+  try {
+    const result = await placedProducts.deleteOne({_id: new ObjectId(productId)});
+
+    if (result.deletedCount === 1) {
+      res.status(200).json({ message: "Product deleted successfully." });
+    } else {
+      res.status(404).json({ message: "Product not found." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error deleting the product." });
+  }
+});
+
+
+
 
 app.put("/update-user", async (req, res) => {
   const { userId } = req.query;
@@ -76,10 +128,7 @@ app.put("/update-user", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  const result = userCollection.findOneAndUpdate(
-    { _id: new ObjectId(userId) },
-    { $set: formData }
-  );
+  const result = await placedProducts.deleteOne({ _id: ObjectId(productId) });
   res.send(result);
 });
 
