@@ -43,13 +43,18 @@ const userCollection = client.db("test").collection("users");
 const placedProducts = client.db("test").collection("userAndProducts");
 async function run() {
   try {
-    await client.connect();
+    await client.connect();clearImmediate
     await client.db("users").command({ ping: 1 });
     console.log("Database is connected successfully.");
   } finally {
   }
 }
 run().catch(console.dir);
+
+// Mahfuj.....
+
+// utility - 306 taka
+// wifi - 250 taka
 
 app.post("/add-productByAdmin", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -80,9 +85,29 @@ app.get("/get-products", async (req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   const query = {};
   const result = await userCollection.find(query).toArray();
-  console.log(result);
   res.send(result);
 });
+
+
+app.get("/get-product/:productId", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  const productId = req.params.productId;
+  const query = {_id: new ObjectId(productId)};
+  try{
+    const product = await userCollection.findOne(query);
+    console.log(product);
+    if (product) {
+      res.send(product);
+    }else{
+      res.send('There is nothing.');
+    }
+  }catch(error){
+    res.send(error);
+  }
+});
+
 
 
 app.get("/get-orders", async (req, res) => {
