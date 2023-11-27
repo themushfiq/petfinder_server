@@ -62,7 +62,6 @@ app.post("/add-productByAdmin", async (req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   const product = req.body;
   const result = await userCollection.insertOne(product);
-  console.log(result);
   res.send(result);
 });
 
@@ -73,7 +72,6 @@ app.post("/userInfoForPlacedProduct", async (req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   const product = req.body;
   const result = await placedProducts.insertOne(product);
-  console.log(result);
   res.send(result);
 });
 
@@ -97,7 +95,6 @@ app.get("/get-product/:productId", async (req, res) => {
   const query = {_id: new ObjectId(productId)};
   try{
     const product = await userCollection.findOne(query);
-    console.log(product);
     if (product) {
       res.send(product);
     }else{
@@ -116,7 +113,6 @@ app.get("/get-orders", async (req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   const query = {};
   const result = await placedProducts.find(query).toArray();
-  console.log(result);
   res.send(result);
 });
 
@@ -129,24 +125,40 @@ app.delete("/deleteProduct/:productId", async (req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   
   const { productId } = req.params;
-  console.log(productId);
   try {
     const result = await placedProducts.deleteOne({_id: new ObjectId(productId)});
-
     if (result.deletedCount === 1) {
       res.status(200).json({ message: "Product deleted successfully." });
     } else {
       res.status(404).json({ message: "Product not found." });
     }
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Error deleting the product." });
   }
 });
 
 
+app.delete("/deleteProductByAdmin/:productId", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  
+  const { productId } = req.params;
+  try {
+    const result = await userCollection.deleteOne({_id: new ObjectId(productId)});
+    if (result.deletedCount === 1) {
+      res.status(200).json({ message: "Product deleted successfully." });
+    } else {
+      res.status(404).json({ message: "Product not found." });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting This product." });
+  }
+});
 
 
+
+// Put request
 app.put("/update-user", async (req, res) => {
   const { userId } = req.query;
   const formData = req.body;
@@ -156,6 +168,26 @@ app.put("/update-user", async (req, res) => {
   const result = await placedProducts.deleteOne({ _id: ObjectId(productId) });
   res.send(result);
 });
+
+
+app.put("/edit-product/:productId", async (req, res) => {
+  const { productId } = req.params;
+  const updatedData = req.body;
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  try {
+    const result = await userCollection.updateOne(
+      { _id: new ObjectId(productId)},
+      { $set: updatedData }
+    );
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: 'Failed to update your product.' });
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Task app listening on ${port}`);
