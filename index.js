@@ -51,11 +51,6 @@ async function run() {
 }
 run().catch(console.dir);
 
-// Mahfuj.....
-
-// utility - 306 taka
-// wifi - 250 taka
-
 app.post("/add-productByAdmin", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
@@ -76,15 +71,100 @@ app.post("/userInfoForPlacedProduct", async (req, res) => {
 });
 
 
+// 1st
+// app.get("/get-products", async (req, res) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+//   const query = {};
+//   const result = await userCollection.find(query).toArray();
+//   res.send(result);
+// });
 
+// 2nd
+// app.get("/get-products", async (req, res) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+//   const PAGE_SIZE = 20;
+//   let page = parseInt(req.query.page) || 1;
+//   let skip = (page - 1) * PAGE_SIZE;
+//   try {
+//     const query = {};
+//     const result = await userCollection.find(query).skip(skip).limit(PAGE_SIZE).toArray();
+//     res.send(result);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send("Error fetching products");
+//   }
+// });
+
+app.get("/categorized-products", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  
+  const PAGE_SIZE = 5;
+  try {
+    const distinctCategories = await userCollection.aggregate([
+      { $group: { _id: "$category" } },
+      { $project: { _id: 0, category: "$_id" } }
+    ]).toArray();
+
+    const result = [];
+    for (const { category } of distinctCategories) {
+      const products = await userCollection.find({ category }).limit(PAGE_SIZE).toArray();
+      result.push({ category, products });
+    }
+
+    res.send(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error fetching products", error);
+  }
+});
+
+
+
+
+
+
+
+// Products for specific category.....
 app.get("/get-products", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  const query = {};
-  const result = await userCollection.find(query).toArray();
-  res.send(result);
+
+  const PAGE_SIZE = 20;
+  let page = parseInt(req.query.page) || 1;
+  let skip = (page - 1) * PAGE_SIZE;
+
+  try {
+    let category = '';
+    if (req.query.category) {
+      const categoryArray = JSON.parse(req.query.category);
+      if (Array.isArray(categoryArray) && categoryArray.length > 0) {
+        category = categoryArray[0].category || '';
+      }
+    }
+
+    const query = category ? { category: { $elemMatch: { category: category } } } : {};
+
+    const result = await userCollection
+      .find(query)
+      .skip(skip)
+      .limit(PAGE_SIZE)
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error fetching products", error);
+  }
 });
+
 
 
 app.get("/get-product/:productId", async (req, res) => {
