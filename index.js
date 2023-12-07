@@ -70,35 +70,15 @@ app.post("/userInfoForPlacedProduct", async (req, res) => {
   res.send(result);
 });
 
-
-// 1st
-// app.get("/get-products", async (req, res) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*");
-//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-//   const query = {};
-//   const result = await userCollection.find(query).toArray();
-//   res.send(result);
-// });
-
-// 2nd
-// app.get("/get-products", async (req, res) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*");
-//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-//   const PAGE_SIZE = 20;
-//   let page = parseInt(req.query.page) || 1;
-//   let skip = (page - 1) * PAGE_SIZE;
-//   try {
-//     const query = {};
-//     const result = await userCollection.find(query).skip(skip).limit(PAGE_SIZE).toArray();
-//     res.send(result);
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send("Error fetching products");
-//   }
-// });
+// All products
+app.get("/get-all-products", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  const query = {};
+  const result = await userCollection.find(query).toArray();
+  res.send(result);
+});
 
 app.get("/categorized-products", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -124,10 +104,6 @@ app.get("/categorized-products", async (req, res) => {
     res.status(500).send("Error fetching products", error);
   }
 });
-
-
-
-
 
 
 
