@@ -226,6 +226,25 @@ app.put("/update-user", async (req, res) => {
 });
 
 
+app.put("/accepted-order-by-admin/:productId", async (req, res) => {
+  const { productId } = req.params;
+  const updatedData = req.body;
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  try {
+    const result = await placedProducts.updateOne(
+      { _id: new ObjectId(productId)},
+      { $set: updatedData }
+    );
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: 'Failed to update your product.' });
+  }
+});
+
+
 app.put("/edit-product/:productId", async (req, res) => {
   const { productId } = req.params;
   const updatedData = req.body;
