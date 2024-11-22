@@ -58,110 +58,6 @@ app.post("/add-productByAdmin", async (req, res) => {
 });
 
 
-app.post("/userInfoForPlacedProduct", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  const product = req.body;
-  const result = await placedProducts.insertOne(product);
-  res.send(result);
-});
-
-// All products
-app.get("/get-all-products", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  const query = {};
-  const result = await userCollection.find(query).toArray();
-  res.send(result);
-});
-
-app.get("/categorized-products", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  
-  const PAGE_SIZE = 5;
-  try {
-    const distinctCategories = await userCollection.aggregate([
-      { $group: { _id: "$category" } },
-      { $project: { _id: 0, category: "$_id" } }
-    ]).toArray();
-
-    const result = [];
-    for (const { category } of distinctCategories) {
-      const products = await userCollection.find({ category }).limit(PAGE_SIZE).toArray();
-      result.push({ category, products });
-    }
-
-    res.send(result);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Error fetching products", error);
-  }
-});
-
-
-
-// Products for specific category.....
-app.get("/get-products", async (req, res) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  
-    const PAGE_SIZE = 20;
-    let page = parseInt(req.query.page) || 1;
-    let skip = (page - 1) * PAGE_SIZE;
-  
-    try {
-      let category = req.query.category;
-      const query = category ? { category: category } : {}; // Update query structure here
-      const result = await userCollection
-        .find(query)
-        .skip(skip)
-        .limit(PAGE_SIZE)
-        .toArray();
-      res.status(200).send(result); // Use status().send() instead of res.send() with status code
-    } catch (error) {
-      res.status(500).send("Error fetching products"); // Sending an error message with status code
-    }
-  });
-  
-
-
-
-app.get("/get-product/:productId", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  const productId = req.params.productId;
-  const query = {_id: new ObjectId(productId)};
-  try{
-    const product = await userCollection.findOne(query);
-    if (product) {
-      res.send(product);
-    }else{
-      res.send('There is nothing.');
-    }
-  }catch(error){
-    res.send(error);
-  }
-});
-
-
-
-app.get("/get-orders", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  const query = {};
-  const result = await placedProducts.find(query).toArray();
-  res.send(result);
-});
-
-
-
 // Product Delete 
 app.delete("/deleteProduct/:productId", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -182,25 +78,6 @@ app.delete("/deleteProduct/:productId", async (req, res) => {
 });
 
 
-app.delete("/deleteProductByAdmin/:productId", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  
-  const { productId } = req.params;
-  try {
-    const result = await userCollection.deleteOne({_id: new ObjectId(productId)});
-    if (result.deletedCount === 1) {
-      res.status(200).json({ message: "Product deleted successfully." });
-    } else {
-      res.status(404).json({ message: "Product not found." });
-    }
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting This product." });
-  }
-});
-
-
 
 // Put request
 app.put("/update-user", async (req, res) => {
@@ -214,42 +91,7 @@ app.put("/update-user", async (req, res) => {
 });
 
 
-app.put("/accepted-order-by-admin/:productId", async (req, res) => {
-  const { productId } = req.params;
-  const updatedData = req.body;
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  try {
-    const result = await placedProducts.updateOne(
-      { _id: new ObjectId(productId)},
-      { $set: updatedData }
-    );
-    res.send(result);
-  } catch (error) {
-    res.status(500).send({ error: 'Failed to update your product.' });
-  }
-});
-
-
-app.put("/edit-product/:productId", async (req, res) => {
-  const { productId } = req.params;
-  const updatedData = req.body;
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  try {
-    const result = await userCollection.updateOne(
-      { _id: new ObjectId(productId)},
-      { $set: updatedData }
-    );
-    res.send(result);
-  } catch (error) {
-    res.status(500).send({ error: 'Failed to update your product.' });
-  }
-});
 
 function getCurrentDateTime() {
   const currentDate = new Date(); 
@@ -375,24 +217,57 @@ app.post("/signup", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   const user = req.body;
+
+  // Check if the email already exists in the database
+  const existingUser = await authentication.findOne({ email: user.email });
+
+  if (existingUser) {
+    // If the email already exists, return a message and do not save the data
+    return res.status(400).json({ message: "Email already registered" });
+  }
+
+  // If email does not exist, insert the new user into the database
   const result = await authentication.insertOne(user);
-  res.send(result);
+  res.status(201).send(result);
 });
 
-app.get("/loggedin-users", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  const query = {};
-  const result = await authentication.find(query).toArray();
-  res.send(result);
+
+
+app.post("/login", async (req, res) => {
+  try {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    const { email, password } = req.body;
+    
+    // Check if the email exists in the database
+    const user = await authentication.findOne({ email: email });
+
+    if (!user) {
+      return res.status(401).send({ message: "Invalid email or password" }); // Email not found
+    }
+
+    // Check if the password matches
+    if (user.password !== password) {
+      return res.status(401).send({ message: "Invalid email or password" }); // Incorrect password
+    }
+
+    // Login successful
+    res.send({ message: "Login successful", user: { id: user._id, email: user.email, name: user.name } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
 });
+
 
 app.listen(port, () => {
   console.log(`Task app listening on ${port}`);
 });
 
 app.get("/", (req, res) => {
-  res.send("Bee raw application running successfully");
+  res.send("Pet Adoption application running successfully");
 });
